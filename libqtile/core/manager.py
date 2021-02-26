@@ -85,7 +85,7 @@ class Qtile(CommandObject):
 
         self.keys_map: Dict[Tuple[int, int], Key] = {}
         self.current_chord = False
-        self.chord_stack = []
+        self.chord_stack: List[KeyChord] = []
         self.numlock_mask, self.valid_mask = self.core.masks
 
         self.current_screen: Optional[Screen] = None
