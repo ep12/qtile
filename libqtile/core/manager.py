@@ -85,6 +85,7 @@ class Qtile(CommandObject):
 
         self.keys_map: Dict[Tuple[int, int], Key] = {}
         self.current_chord = False
+        self.chord_stack = []
         self.numlock_mask, self.valid_mask = self.core.masks
 
         self.current_screen: Optional[Screen] = None
@@ -374,6 +375,7 @@ class Qtile(CommandObject):
         self.keys_map.clear()
 
     def grab_chord(self, chord) -> None:
+        self.chord_stack.append(chord)
         self.current_chord = chord.mode if chord.mode != "" else True
         if self.current_chord:
             hook.fire("enter_chord", self.current_chord)
@@ -383,10 +385,33 @@ class Qtile(CommandObject):
             self.grab_key(key)
 
     def cmd_ungrab_chord(self) -> None:
+        """Leave a chord mode"""
         self.current_chord = False
         hook.fire("leave_chord")
 
         self.ungrab_keys()
+        if not self.chord_stack:
+            logger.debug("cmd_ungrab_chord was called when no chord mode was active")
+            return
+        # The first pop is necessary: Otherwise we would be stuck in a mode;
+        # we could not leave it: the code below would re-enter the old mode.
+        self.chord_stack.pop()
+        # Find another named mode or load the root keybindings:
+        while self.chord_stack:
+            chord = self.chord_stack.pop()
+            if chord.mode != "":
+                self.grab_chord(chord)
+                break
+        else:
+            for key in self.config.keys:
+                self.grab_key(key)
+
+    def cmd_ungrab_all_chords(self) -> None:
+        """Leave all chord modes and grab the root bindings"""
+        self.current_chord = False
+        hook.fire("leave_chord")
+        self.ungrab_keys()
+        self.chord_stack.clear()
         for key in self.config.keys:
             self.grab_key(key)
 
