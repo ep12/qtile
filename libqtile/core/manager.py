@@ -85,6 +85,7 @@ class Qtile(CommandObject):
 
         self.keys_map: Dict[Tuple[int, int], Key] = {}
         self.current_chord = False
+        self.chord_stack = []
         self.numlock_mask, self.valid_mask = self.core.masks
 
         self.current_screen: Optional[Screen] = None
@@ -142,6 +143,7 @@ class Qtile(CommandObject):
         self.config.mouse += (Click([], "Button1", lazy.function(noop), focus="after"),)
 
     def dump_state(self, buf):
+        del(self.chord_stack)  # TODO: is there a better way to avoid errors?
         try:
             pickle.dump(QtileState(self), buf, protocol=0)
         except:  # noqa: E722
@@ -374,6 +376,7 @@ class Qtile(CommandObject):
         self.keys_map.clear()
 
     def grab_chord(self, chord) -> None:
+        self.chord_stack.append(chord)
         self.current_chord = chord.mode if chord.mode != "" else True
         if self.current_chord:
             hook.fire("enter_chord", self.current_chord)
@@ -387,8 +390,14 @@ class Qtile(CommandObject):
         hook.fire("leave_chord")
 
         self.ungrab_keys()
-        for key in self.config.keys:
-            self.grab_key(key)
+        while self.chord_stack:
+            chord = self.chord_stack.pop()
+            if chord.mode != "":
+                self.grab_chord(chord)
+                break
+        else:
+            for key in self.config.keys:
+                self.grab_key(key)
 
     def grab_mouse(self) -> None:
         self.core.ungrab_buttons()
