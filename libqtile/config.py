@@ -24,11 +24,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations  # required for lazy type annotations
+# can be removed when python 3.7...3.9 support is dropped (see PEP 563)
 
 import os.path
 import sys
 import warnings
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Union
 
 from libqtile import configurable, hook, utils, window
 from libqtile.bar import BarType
@@ -73,12 +75,14 @@ class KeyChord:
     key:
         A key specification, e.g. "a", "Tab", "Return", "space".
     submappings:
-        A list of Key declarations to bind in this chord
+        A list of Key or KeyChord declarations to bind in this chord.
     mode:
-        A string with vim like mode name if it's set chord not end
-        after use one of submapings or Esc key
+        A string with vim like mode name. If it's set, the chord mode will
+        not be left after a keystroke (except for Esc which always leaves the
+        current chord/mode).
     """
-    def __init__(self, modifiers: List[str], key: str, submapings: List[Key], mode: str = ""):
+    def __init__(self, modifiers: List[str], key: str,
+                 submapings: List[Union[Key, KeyChord]], mode: str = ""):
         self.modifiers = modifiers
         self.key = key
 
