@@ -24,8 +24,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from __future__ import annotations  # required for lazy type annotations
+#
+#
+# required for lazy type annotations
 # can be removed when python 3.7...3.9 support is dropped (see PEP 563)
+from __future__ import annotations
 
 import os.path
 import sys
