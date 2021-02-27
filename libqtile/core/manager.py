@@ -381,7 +381,7 @@ class Qtile(CommandObject):
             hook.fire("enter_chord", self.current_chord)
 
         self.ungrab_keys()
-        for key in chord.submapings:
+        for key in chord.submappings:
             self.grab_key(key)
 
     def cmd_ungrab_chord(self) -> None:
