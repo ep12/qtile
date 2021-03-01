@@ -407,7 +407,7 @@ class Qtile(CommandObject):
             for key in self.config.keys:
                 self.grab_key(key)
 
-    def cmd_leave_chord_mode(self) -> None:
+    def cmd_ungrab_all_chords(self) -> None:
         """Leave all chord modes and grab the root bindings"""
         self.current_chord = False
         hook.fire("leave_chord")
