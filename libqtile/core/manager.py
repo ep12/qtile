@@ -392,11 +392,11 @@ class Qtile(CommandObject):
 
         self.ungrab_keys()
         if self.chord_stack:
+            # This if condition should always be true, but check is better than
+            # break. We want the rest of the function to be run!
             # The first pop is necessary: Otherwise we would be stuck in a mode;
             # we could not leave it: the code below would re-enter the old mode.
             self.chord_stack.pop()
-        else:
-            logger.debug("cmd_ungrab_chord was called when no chord mode was active")
         # Find another named mode or load the root keybindings:
         while self.chord_stack:
             chord = self.chord_stack.pop()
