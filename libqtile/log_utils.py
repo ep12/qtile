@@ -72,6 +72,67 @@ class ColorFormatter(Formatter):
         return message + self.reset_seq
 
 
+import pickle
+import threading
+
+
+def frame_to_dict(f):
+    return {'f_code.co_filename': f.f_code.co_filename,
+            'f_code.co_name': f.f_code.co_name,
+            'f_code.co_firstlineno': f.f_code.co_firstlineno,
+            'f_lineno': f.f_lineno,
+            'f_lasti': f.f_lasti}
+
+
+def frame_stack_to_list(frame):
+    f = frame
+    l = ['current']
+    while f:
+        l.append(frame_to_dict(f))
+        f = f.f_back
+    l.append('super')
+    return l
+
+
+def get_all_frames():
+    current_ident = threading.current_thread().ident
+    out = {}
+    for ident, frame in sys._current_frames().items():
+        l = ['CURRENT!'] if ident == current_ident else []
+        out[repr(ident)] = l + frame_stack_to_list(frame)
+    return out
+
+
+def trace(frame, event, arg):
+    if trace.say_hello:
+        trace.say_hello = False
+        if trace.logging:
+            logger.info('tracer works')
+        else:
+            print('tracer works')
+    if 'LINES' in os.environ or 'COLUMNS' in os.environ:
+        try:
+            with open('/tmp/tracer.pickle', 'wb') as f:
+                pickle.dump((dict(os.environ), frame_stack_to_list(frame),
+                             get_all_frames(),
+                             str(event), repr(arg)), f)
+        except Exception as e:
+            if trace.logging:
+                logger.error('tracer error: %r', e)
+            else:
+                print('tracer error: %r' % e)
+        f = frame
+        while f:
+            logger.info(repr(f))
+            f = f.f_back
+        threading.settrace(None)
+    else:
+        return trace
+
+trace.logging = False
+trace.say_hello = False
+
+
 def init_log(log_level=WARNING, log_path=True, log_truncate=False,
              log_size=10000000, log_numbackups=1, log_color=True):
     for handler in logger.handlers:
@@ -124,4 +185,6 @@ def init_log(log_level=WARNING, log_path=True, log_truncate=False,
     captureWarnings(True)
     warnings.simplefilter("always")
     logger.debug('Starting logging for Qtile')
+    trace.logging = True
+    trace.say_hello = True
     return logger

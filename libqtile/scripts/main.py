@@ -1,8 +1,9 @@
 import argparse
 import logging
 import sys
+import threading
 
-from libqtile.log_utils import init_log
+from libqtile.log_utils import init_log, trace
 from libqtile.scripts import check, cmd_obj, migrate, run_cmd, shell, start, top
 
 try:
@@ -13,6 +14,8 @@ except (pkg_resources.DistributionNotFound, ImportError):
 
 
 def main():
+    threading.settrace(trace)
+    trace.say_hello = True
     parent_parser = argparse.ArgumentParser(add_help=False)
     parent_parser.add_argument(
         '-l', '--log-level',
